@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Poker Royal">
+<meta name="theme-color" content="#08090D">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./icon-192.png" type="image/png">
+<title>Poker Royal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08090D; --panel:#11141B; --raised:#181D26; --edge:#232B37; --edge2:#2E3846;
+  --green:#00C46A; --red:#FF3B47; --orange:#FF8A00; --blue:#2E7BFF; --chip:#FFFFFF;
+  --txt:#F2F5F8; --dim:#8A97A6;
+  --ui:"Chakra Petch",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--txt);font-family:var(--ui);
+  -webkit-text-size-adjust:100%;overscroll-behavior-y:none}
+.app{max-width:540px;margin:0 auto;background:var(--panel);min-height:100vh;
+  padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+
+/* ══ cabeçalho / logo ══ */
+.top{display:flex;align-items:center;gap:12px;padding:18px 18px 14px;
+  padding-top:calc(18px + env(safe-area-inset-top));background:var(--bg)}
+.marca{display:flex;flex-direction:column;line-height:.95}
+.marca b{font-size:23px;font-weight:700;letter-spacing:.18em}
+.marca span{font-size:9px;letter-spacing:.32em;color:var(--dim);margin-top:3px}
+.salvo{margin-left:auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+  color:var(--dim);text-align:right;line-height:1.5}
+.salvo b{display:block;color:var(--green);font-weight:500}
+
+/* ══ nome do torneio ══ */
+.titulo{padding:0 18px 14px;background:var(--bg)}
+.titulo input{width:100%;background:transparent;border:0;border-bottom:1px solid var(--edge);
+  color:var(--txt);font-family:var(--ui);font-size:19px;font-weight:500;letter-spacing:.03em;
+  padding:6px 0;outline:none}
+.titulo input:focus{border-color:var(--blue)}
+
+/* ══ painel fixo ══ */
+.painel{position:sticky;top:0;z-index:50;background:var(--bg);
+  border-top:1px solid var(--edge);border-bottom:2px solid var(--edge2);padding:14px 18px 12px}
+.rot{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.premio{font-family:var(--mono);font-weight:700;font-size:34px;line-height:1.05;
+  font-variant-numeric:tabular-nums;color:var(--green);letter-spacing:-.02em}
+.barra{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--raised);margin:12px 0 11px}
+.barra i{display:block;height:100%}
+.trio{display:flex;gap:12px}
+.trio .c{flex:1;min-width:0}
+.trio .v{font-family:var(--mono);font-size:14px;font-weight:500;
+  font-variant-numeric:tabular-nums;white-space:nowrap;margin-top:2px}
+.mesa{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;
+  color:var(--dim);margin-top:10px;padding-top:9px;border-top:1px solid var(--edge)}
+
+/* ══ seções ══ */
+section{border-bottom:1px solid var(--edge)}
+.cab{display:flex;align-items:center;gap:10px;padding:17px 18px;cursor:pointer;user-select:none}
+.cab h2{font-size:14px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;flex:1}
+.cab .tag{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.cab .seta{color:var(--dim);font-size:11px;transition:transform .2s}
+.on .seta{transform:rotate(180deg)}
+.corpo{padding:0 18px 22px;display:none}
+.on .corpo{display:block}
+
+/* ══ campos ══ */
+.lab{display:block;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:5px}
+input.f{width:100%;background:var(--bg);border:1px solid var(--edge);color:var(--txt);
+  border-radius:8px;padding:11px 12px;font-family:var(--mono);font-size:16px;outline:none}
+input.f:focus{border-color:var(--blue)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ══ botões ══ */
+button{font-family:var(--ui);font-size:12px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;border-radius:8px;border:1px solid var(--edge2);
+  background:transparent;color:var(--txt);padding:13px 14px;min-height:46px}
+button.full{width:100%}
+button.go{background:var(--blue);border-color:var(--blue)}
+button.warn{color:var(--red);border-color:var(--red)}
+button:active{opacity:.55}
+
+/* ══ tabela de compras ══ */
+.tp{border:1px solid var(--edge);border-left-width:4px;border-radius:8px;
+  background:var(--raised);padding:13px;margin-bottom:10px}
+.tp .h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px}
+.tp .h b{font-size:15px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.tp .h span{font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+/* ══ jogador ══ */
+.jg{border:1px solid var(--edge);border-radius:10px;background:var(--raised);
+  padding:13px;margin-bottom:11px;position:relative;overflow:hidden}
+.jg.out{opacity:.4}
+.jg .cabec{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.jg .num{font-family:var(--mono);font-size:11px;color:var(--dim);width:16px}
+.jg .cabec input{flex:1;background:transparent;border:0;border-bottom:1px solid var(--edge);
+  color:var(--txt);font-family:var(--ui);font-size:17px;font-weight:500;letter-spacing:.04em;
+  padding:5px 0;outline:none}
+.jg .cabec input:focus{border-color:var(--blue)}
+.jg .tot{font-family:var(--mono);font-size:15px;font-weight:500;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.pilha{display:flex;gap:3px;flex-wrap:wrap;min-height:14px;margin-bottom:12px}
+.pilha i{width:8px;height:14px;border-radius:2px}
+.acs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ac{display:flex;align-items:center;gap:5px;background:var(--bg);
+  border:1px solid var(--edge);border-radius:8px;padding:5px;border-left-width:3px}
+.ac .n{flex:1;min-width:0;font-size:10px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac .q{font-family:var(--mono);font-size:16px;font-weight:700;min-width:15px;text-align:center}
+.ac button{width:36px;min-height:36px;padding:0;font-size:19px;font-weight:400;
+  border-radius:6px;line-height:1}
+.ac.fixo{padding-left:9px}
+.ac.fixo .lock{width:20px;text-align:center;color:var(--green);font-size:13px;font-weight:700}
+.ac.fixo .q{color:var(--green)}
+.jg .pe{display:flex;justify-content:space-between;align-items:center;margin-top:11px}
+.jg .fx{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.jg .pe button{min-height:34px;padding:7px 12px;font-size:10px}
+
+/* ══ despesas ══ */
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cats button{padding:9px 13px;min-height:38px;font-size:10.5px;letter-spacing:.1em}
+.cats button.sel{background:var(--red);border-color:var(--red)}
+.it{display:flex;align-items:center;gap:10px;background:var(--raised);border:1px solid var(--edge);
+  border-left:3px solid var(--red);border-radius:8px;padding:12px;margin-top:8px}
+.it .d{flex:1;font-size:14px;font-weight:500;letter-spacing:.04em}
+.it .d em{font-style:normal;color:var(--dim);font-weight:400}
+.it .v{font-family:var(--mono);font-size:13.5px;color:var(--red)}
+.it .x{border:0;background:none;color:var(--dim);min-height:auto;padding:4px 6px;font-size:17px}
+
+/* ══ premiação ══ */
+.ps{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.ps .p{font-family:var(--mono);font-size:13px;font-weight:700;width:28px;color:var(--dim)}
+.ps .p.au{color:var(--orange)}
+.ps input{flex:0 0 74px;text-align:center}
+.ps .pc{color:var(--dim);font-size:13px}
+.ps .r{flex:1;text-align:right;font-family:var(--mono);font-size:14px;font-weight:500;
+  font-variant-numeric:tabular-nums}
+.av{font-family:var(--mono);font-size:11.5px;margin-top:10px}
+.av.ok{color:var(--green)} .av.no{color:var(--red)}
+
+/* ══ fechamento ══ */
+.res{background:var(--bg);border:1px solid var(--edge);border-radius:10px;padding:15px}
+.res .r{display:flex;justify-content:space-between;padding:5px 0;font-family:var(--mono);font-size:13px}
+.res .r span:first-child{color:var(--dim)}
+.res .r.hi{border-top:1px solid var(--edge);margin-top:6px;padding-top:10px}
+.res .r.hi span:last-child{color:var(--green);font-size:17px;font-weight:700}
+.res .r.pz span:last-child{color:var(--orange)}
+
+.rodape{padding:20px 18px 30px;font-size:11.5px;color:var(--dim);line-height:1.65}
+
+/* ══ toast ══ */
+.tst{position:fixed;left:50%;transform:translateX(-50%) translateY(8px);
+  bottom:calc(18px + env(safe-area-inset-bottom));background:var(--raised);
+  border:1px solid var(--edge2);border-left:4px solid var(--blue);border-radius:9px;
+  padding:13px 15px;font-family:var(--mono);font-size:12.5px;z-index:99;
+  width:calc(100% - 32px);max-width:490px;display:flex;justify-content:space-between;
+  align-items:center;gap:12px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+.tst.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.tst.err{border-left-color:var(--red)}
+.tst button{border:0;background:none;color:var(--orange);padding:0;min-height:auto;
+  font-size:11px;letter-spacing:.12em}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <svg width="34" height="30" viewBox="0 0 34 30" aria-label="Poker Royal">
+      <path d="M0 8 L6 26 L11 26 L8 8 Z" fill="#00C46A"/>
+      <path d="M9 4 L14 26 L18 26 L14 4 Z" fill="#2E7BFF"/>
+      <path d="M20 4 L16 26 L20 26 L25 4 Z" fill="#FF8A00"/>
+      <path d="M34 8 L28 26 L23 26 L26 8 Z" fill="#FFFFFF"/>
+      <rect x="4" y="27" width="26" height="3" rx="1.5" fill="#5A6675"/>
+    </svg>
+    <div class="marca"><b>POKER</b><b style="color:var(--orange)">ROYAL</b><span>CONTROLE DE MESA</span></div>
+    <div class="salvo"><b id="sv">salvo</b><span id="svq">—</span></div>
+  </div>
+
+  <div class="titulo">
+    <input id="tNome" placeholder="Nome do torneio" onchange="setNome(this.value)">
+  </div>
+
+  <div class="painel">
+    <div class="rot">Premiação líquida</div>
+    <div class="premio" id="pPremio">R$ 0,00</div>
+    <div class="barra" id="barra"></div>
+    <div class="trio">
+      <div class="c"><div class="rot">Arrecadado</div><div class="v" id="pArrec">R$ 0,00</div></div>
+      <div class="c"><div class="rot">Despesas</div><div class="v" id="pDesp" style="color:var(--red)">R$ 0,00</div></div>
+      <div class="c"><div class="rot">Entradas</div><div class="v" id="pEnt">0</div></div>
+    </div>
+    <div class="mesa">
+      <span id="mVivos">0 na mesa</span>
+      <span id="mFichas">0 fichas · média 0</span>
+    </div>
+  </div>
+
+  <section id="sC">
+    <div class="cab" onclick="tg('sC')"><h2>Tabela de compras</h2><span class="tag" id="tagC"></span><span class="seta">▾</span></div>
+    <div class="corpo" id="listaT"></div>
+  </section>
+
+  <section id="sJ" class="on">
+    <div class="cab" onclick="tg('sJ')"><h2>Jogadores</h2><span class="tag" id="tagJ"></span><span class="seta">▾</span></div>
+    <div class="corpo">
+      <div id="listaJ"></div>
+      <button class="full" id="btnAdd" onclick="addJog()">+ adicionar jogador</button>
+    </div>
+  </section>
+
+  <section id="sD">
+    <div class="cab" onclick="tg('sD')"><h2>Despesas</h2><span class="tag" id="tagD"></span><span class="seta">▾</span></div>
+    <div class="corpo">
+      <div class="cats" id="cats"></div>
+      <div style="margin-bottom:11px">
+        <label><span class="lab">Valor da despesa</span><input class="f" id="dVal" inputmode="decimal" placeholder="0,00"></label>
+      </div>
+      <button class="full" onclick="addDesp()">Lançar despesa</button>
+      <div id="listaD"></div>
+    </div>
+  </section>
+
+  <section id="sP" class="on">
+    <div class="cab" onclick="tg('sP')"><h2>Premiação</h2><span class="tag" id="tagP"></span><span class="seta">▾</span></div>
+    <div class="corpo">
+      <div id="listaP"></div>
+      <div class="av" id="av"></div>
+      <div class="g2" style="margin-top:13px">
+        <button onclick="addPos()">+ posição</button>
+        <button onclick="delPos()">− posição</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="sF" class="on">
+    <div class="cab" onclick="tg('sF')"><h2>Fechamento</h2><span class="seta">▾</span></div>
+    <div class="corpo">
+      <div class="res" id="res"></div>
+      <button class="full go" style="margin-top:13px" onclick="gerarPDF()">Gerar relatório (PDF)</button>
+      <button class="full" style="margin-top:9px" onclick="copiar()">Copiar resumo da noite</button>
+      <div class="g2" style="margin-top:9px">
+        <button onclick="baixarBackup()">Salvar backup</button>
+        <button onclick="document.getElementById('arq').click()">Restaurar backup</button>
+      </div>
+      <input type="file" id="arq" accept=".json,application/json" style="display:none" onchange="restaurar(this)">
+      <button class="full warn" style="margin-top:9px" onclick="zerar()">Iniciar nova mesa</button>
+    </div>
+  </section>
+
+  <p class="rodape">
+    O Poker Royal registra e calcula valores. Não recebe, não guarda e não transfere dinheiro.<br><br>
+    Tudo é salvo automaticamente neste aparelho. Pode bloquear a tela, trocar de app ou fechar o
+    navegador — a mesa continua exatamente onde parou.
+  </p>
+</div>
+
+<div class="tst" id="tst"><span id="tstMsg"></span><button id="tstBtn">Desfazer</button></div>
+
+<script>
+/* ══════════ persistência em camadas ══════════ */
+const KEY = 'pokerroyal:mesa:v1';
+const Store = {
+  async ler(){
+    try{ const s = localStorage.getItem(KEY); if(s) return JSON.parse(s); }catch(e){}
+    try{ if(window.storage){ const r = await window.storage.get(KEY); if(r&&r.value) return JSON.parse(r.value); } }catch(e){}
+    return null;
+  },
+  gravar(obj){
+    const s = JSON.stringify(obj);
+    let ok = false;
+    try{ localStorage.setItem(KEY, s); ok = true; }catch(e){}
+    try{ if(window.storage){ window.storage.set(KEY, s); ok = true; } }catch(e){}
+    return ok;
+  },
+  limpar(){
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    try{ if(window.storage) window.storage.delete(KEY); }catch(e){}
+  }
+};
+
+/* ══════════ estado ══════════ */
+const CORES = {bi:'var(--green)', rb:'var(--chip)', rb2:'var(--orange)', ad:'var(--blue)'};
+let E = {
+  nome:'',
+  tipos:[
+    {id:'bi', nome:'Buy-in',      valor:10000, fichas:20000, max:1},
+    {id:'rb', nome:'Rebuy',       valor:10000, fichas:20000, max:null},
+    {id:'rb2',nome:'Rebuy duplo', valor:20000, fichas:45000, max:null},
+    {id:'ad', nome:'Add-on',      valor:10000, fichas:25000, max:1}
+  ],
+  jogadores:[], despesas:[], posicoes:[50,30,20], cat:'Dealer'
+};
+const CATS = ['Dealer','Baralho','Troféu','Aluguel do espaço','Alimentação','Despesa extra'];
+
+/* ══════════ utilitários ══════════ */
+const brl = c => (c<0?'−':'')+'R$ '+(Math.abs(c)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const cts = v => { const n=parseFloat(String(v).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')); return Number.isFinite(n)?Math.round(n*100):0; };
+const it  = v => parseInt(String(v).replace(/\D/g,''))||0;
+const nf  = n => n.toLocaleString('pt-BR');
+const T   = id => E.tipos.find(t=>t.id===id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+function tg(id){ document.getElementById(id).classList.toggle('on'); }
+
+let tTimer;
+function toast(msg, undo){
+  const el=document.getElementById('tst'), b=document.getElementById('tstBtn');
+  document.getElementById('tstMsg').textContent = msg;
+  el.classList.toggle('err', !undo);
+  b.style.display = undo ? 'block' : 'none';
+  b.onclick = ()=>{ undo(); el.classList.remove('show'); };
+  el.classList.add('show');
+  clearTimeout(tTimer);
+  tTimer = setTimeout(()=>el.classList.remove('show'), undo?5000:2400);
+}
+
+/* ══════════ salvamento ══════════ */
+let svTimer;
+function salvar(imediato){
+  clearTimeout(svTimer);
+  const run = ()=>{
+    const ok = Store.gravar(E);
+    const h = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('sv').textContent = ok ? 'salvo' : 'não salvo';
+    document.getElementById('sv').style.color = ok ? 'var(--green)' : 'var(--red)';
+    document.getElementById('svq').textContent = ok ? h : 'sem memória';
+  };
+  imediato ? run() : (svTimer = setTimeout(run, 350));
+}
+['visibilitychange','pagehide','beforeunload','blur'].forEach(ev =>
+  window.addEventListener(ev, ()=>salvar(true)));
+
+/* ══════════ cálculo ══════════ */
+const inv    = j => E.tipos.reduce((s,t)=>s+j.q[t.id]*t.valor,0);
+const fichas = j => E.tipos.reduce((s,t)=>s+j.q[t.id]*t.fichas,0);
+const dentro = j => j.q.bi > 0;
+
+function calc(){
+  const ins = E.jogadores.filter(dentro);
+  const arrec = ins.reduce((s,j)=>s+inv(j),0);
+  const desp  = E.despesas.reduce((s,d)=>s+d.valor,0);
+  const liq   = arrec - desp;
+  const fic   = ins.reduce((s,j)=>s+fichas(j),0);
+  const vivos = ins.filter(j=>!j.out);
+  const soma  = E.posicoes.reduce((a,b)=>a+b,0);
+  const ent   = ins.reduce((s,j)=>s+E.tipos.reduce((a,t)=>a+j.q[t.id],0),0);
+  let pz = [];
+  if (liq>0 && soma===100){
+    pz = E.posicoes.map(p=>Math.floor(liq*p/100));
+    pz[0] += liq - pz.reduce((a,b)=>a+b,0);      // resíduo de centavos vai ao 1º
+  }
+  return {ins,arrec,desp,liq,fic,vivos,soma,pz,ent,
+          media: vivos.length ? Math.round(fic/vivos.length) : 0};
+}
+
+/* ══════════ render ══════════ */
+function render(){
+  const c = calc();
+
+  document.getElementById('pPremio').textContent = brl(Math.max(0,c.liq));
+  document.getElementById('pArrec').textContent  = brl(c.arrec);
+  document.getElementById('pDesp').textContent   = brl(c.desp);
+  document.getElementById('pEnt').textContent    = c.ent;
+  document.getElementById('mVivos').textContent  = c.vivos.length+' de '+c.ins.length+' na mesa';
+  document.getElementById('mFichas').textContent = nf(c.fic)+' fichas · média '+nf(c.media);
+
+  const pd = c.arrec ? (c.desp/c.arrec*100) : 0;
+  document.getElementById('barra').innerHTML =
+    `<i style="width:${Math.min(100,pd)}%;background:var(--red)"></i>`+
+    `<i style="width:${Math.max(0,100-pd)}%;background:var(--green)"></i>`;
+
+  document.getElementById('tagC').textContent = E.tipos.map(t=>brl(t.valor).replace('R$ ','')).join(' · ');
+  document.getElementById('tagJ').textContent = c.ins.length+'/10';
+  document.getElementById('tagD').textContent = E.despesas.length ? brl(c.desp) : '';
+  document.getElementById('tagP').textContent = c.soma+'%';
+
+  document.getElementById('listaT').innerHTML = E.tipos.map((t,i)=>`
+    <div class="tp" style="border-left-color:${CORES[t.id]}">
+      <div class="h"><b>${t.nome}</b><span>${t.max?'MÁX '+t.max:'SEM LIMITE'}</span></div>
+      <div class="g2">
+        <label><span class="lab">Valor</span><input class="f" inputmode="decimal"
+          value="${(t.valor/100).toFixed(2).replace('.',',')}" onchange="setT(${i},'valor',this.value)"></label>
+        <label><span class="lab">Fichas</span><input class="f" inputmode="numeric"
+          value="${t.fichas}" onchange="setT(${i},'fichas',this.value)"></label>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('listaJ').innerHTML = E.jogadores.map((j,i)=>{
+    const pilha = E.tipos.flatMap(t=>Array(j.q[t.id]).fill(`<i style="background:${CORES[t.id]}"></i>`)).join('');
+    const acs = E.tipos.map(t=>{
+      if (t.id==='bi') return `
+      <div class="ac fixo" style="border-left-color:${CORES[t.id]}">
+        <span class="lock">✓</span>
+        <span class="n">${t.nome}</span><span class="q">1</span>
+      </div>`;
+      return `
+      <div class="ac" style="border-left-color:${CORES[t.id]}">
+        <button onclick="mud(${i},'${t.id}',-1)">−</button>
+        <span class="n">${t.nome}</span><span class="q">${j.q[t.id]}</span>
+        <button onclick="mud(${i},'${t.id}',1)" style="background:${CORES[t.id]};border-color:${CORES[t.id]};color:#08090D">+</button>
+      </div>`;
+    }).join('');
+    return `<div class="jg ${j.out?'out':''}">
+      <div class="cabec">
+        <span class="num">${String(i+1).padStart(2,'0')}</span>
+        <input value="${esc(j.nome)}" placeholder="Jogador ${i+1}" onchange="setJ(${i},this.value)">
+        <span class="tot">${brl(inv(j))}</span>
+      </div>
+      <div class="pilha">${pilha}</div>
+      <div class="acs">${acs}</div>
+      <div class="pe">
+        <span class="fx">${nf(fichas(j))} fichas</span>
+        <span>
+          <button onclick="virar(${i})">${j.out?'voltou':'eliminar'}</button>
+          <button class="warn" onclick="remJog(${i})">remover</button>
+        </span>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('btnAdd').style.display = E.jogadores.length>=10 ? 'none':'block';
+
+  document.getElementById('cats').innerHTML = CATS.map(x=>
+    `<button class="${x===E.cat?'sel':''}" onclick="E.cat='${x}';render()">${x}</button>`).join('');
+  document.getElementById('listaD').innerHTML = E.despesas.map((d,i)=>`
+    <div class="it"><span class="d">${esc(d.cat)}</span>
+    <span class="v">${brl(d.valor)}</span>
+    <button class="x" onclick="remDesp(${i})">×</button></div>`).join('');
+
+  document.getElementById('listaP').innerHTML = E.posicoes.map((p,i)=>`
+    <div class="ps"><span class="p ${i===0?'au':''}">${i+1}º</span>
+      <input class="f" inputmode="numeric" value="${p}" onchange="setP(${i},this.value)">
+      <span class="pc">%</span>
+      <span class="r">${c.pz[i]!=null?brl(c.pz[i]):'—'}</span></div>`).join('');
+  const av = document.getElementById('av');
+  av.className = 'av '+(c.soma===100?'ok':'no');
+  av.textContent = c.soma===100 ? 'Soma 100% ✓' : 'Soma '+c.soma+'% — precisa fechar exatamente 100%';
+
+  document.getElementById('res').innerHTML =
+    `<div class="r"><span>Jogadores inscritos</span><span>${c.ins.length}</span></div>`+
+    `<div class="r"><span>Total de entradas</span><span>${c.ent}</span></div>`+
+    `<div class="r"><span>Fichas em jogo</span><span>${nf(c.fic)}</span></div>`+
+    `<div class="r"><span>Arrecadação bruta</span><span>${brl(c.arrec)}</span></div>`+
+    `<div class="r"><span>− Despesas</span><span style="color:var(--red)">${brl(c.desp)}</span></div>`+
+    `<div class="r hi"><span>= Premiação</span><span>${brl(Math.max(0,c.liq))}</span></div>`+
+    c.pz.map((v,i)=>`<div class="r pz"><span>${i+1}º lugar · ${E.posicoes[i]}%</span><span>${brl(v)}</span></div>`).join('')+
+    (c.pz.length?`<div class="r"><span>Σ prêmios</span><span>${brl(c.pz.reduce((a,b)=>a+b,0))}</span></div>`:'');
+
+  salvar();
+}
+
+/* ══════════ ações ══════════ */
+function setNome(v){ E.nome = v; salvar(true); }
+function setT(i,campo,v){ E.tipos[i][campo] = campo==='valor'?cts(v):it(v); render(); }
+function setJ(i,v){ E.jogadores[i].nome = v; render(); }
+function setP(i,v){ E.posicoes[i] = it(v); render(); }
+function virar(i){ E.jogadores[i].out = !E.jogadores[i].out; render(); }
+
+function addJog(){
+  if (E.jogadores.length>=10) return;
+  const q={}; E.tipos.forEach(t=>q[t.id]=0); q.bi=1;
+  E.jogadores.push({nome:'', q, out:false});
+  render();
+}
+function remJog(i){
+  const j = E.jogadores[i], copia = JSON.parse(JSON.stringify(j));
+  E.jogadores.splice(i,1); render();
+  toast('Jogador removido', ()=>{ E.jogadores.splice(i,0,copia); render(); });
+}
+function mud(i,tid,d){
+  if (tid==='bi') return;                       // buy-in é fixo em 1
+  const j=E.jogadores[i], t=T(tid), novo=j.q[tid]+d;
+  if (novo<0) return;
+  if (t.max && novo>t.max) return toast(t.nome+': máximo de '+t.max+' por jogador');
+  j.q[tid]=novo; render();
+  if (d>0) toast(t.nome+' · '+(j.nome||'Jogador '+(i+1))+' · '+brl(t.valor),
+                 ()=>{ j.q[tid]--; render(); });
+}
+function addDesp(){
+  const v = cts(document.getElementById('dVal').value);
+  if (!v) return toast('Informe o valor da despesa');
+  E.despesas.push({cat:E.cat, valor:v});
+  document.getElementById('dVal').value='';
+  render();
+}
+function remDesp(i){
+  const c = E.despesas[i];
+  E.despesas.splice(i,1); render();
+  toast('Despesa removida', ()=>{ E.despesas.splice(i,0,c); render(); });
+}
+function addPos(){ if (E.posicoes.length<9){ E.posicoes.push(0); render(); } }
+function delPos(){ if (E.posicoes.length>1){ E.posicoes.pop(); render(); } }
+
+function zerar(){
+  if (!confirm('Isso apaga a mesa atual e começa uma nova. Continuar?')) return;
+  E.jogadores=[]; E.despesas=[]; E.nome='';
+  document.getElementById('tNome').value='';
+  for(let i=0;i<10;i++) addJog();
+  salvar(true);
+  toast('Nova mesa aberta');
+}
+
+function copiar(){
+  const c = calc();
+  const txt = [
+    (E.nome||'POKER ROYAL')+' — resumo da noite','',
+    'Arrecadado: '+brl(c.arrec),
+    'Despesas: '+brl(c.desp),
+    'Premiação: '+brl(Math.max(0,c.liq)),'',
+    ...c.pz.map((v,i)=>(i+1)+'º lugar ('+E.posicoes[i]+'%): '+brl(v)),'',
+    'Entradas por jogador:',
+    ...c.ins.map((j,i)=>'• '+(j.nome||'Jogador '+(i+1))+' — '+brl(inv(j))+' ('+
+      E.tipos.filter(t=>j.q[t.id]>0).map(t=>j.q[t.id]+'x '+t.nome).join(', ')+')'),'',
+    nf(c.fic)+' fichas em jogo · média '+nf(c.media)
+  ].join('\n');
+  navigator.clipboard.writeText(txt).then(()=>toast('Resumo copiado'))
+    .catch(()=>toast('Não consegui copiar neste navegador'));
+}
+
+/* ══════════ relatório em PDF (via impressão do sistema) ══════════ */
+function gerarPDF(){
+  const c = calc();
+  const data = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const CoresH = {bi:'#00C46A', rb:'#3A3F4A', rb2:'#FF8A00', ad:'#2E7BFF'};
+
+  const linhasJog = c.ins.map((j,idx)=>{
+    const comp = E.tipos.filter(t=>j.q[t.id]>0)
+      .map(t=>`<span class="tag" style="background:${CoresH[t.id]}">${j.q[t.id]}× ${t.nome}</span>`).join(' ');
+    return `<tr>
+      <td class="c">${idx+1}</td>
+      <td>${esc(j.nome||'Jogador '+(idx+1))}</td>
+      <td>${comp}</td>
+      <td class="r money">${brl(inv(j))}</td>
+    </tr>`;
+  }).join('');
+
+  const linhasDesp = E.despesas.length
+    ? E.despesas.map(d=>`<tr><td colspan="2">${esc(d.cat)}</td>
+        <td class="r money neg">${brl(d.valor)}</td></tr>`).join('')
+    : `<tr><td colspan="3" class="muted">Nenhuma despesa lançada</td></tr>`;
+
+  const linhasPremio = c.pz.map((v,i)=>`<tr>
+      <td class="c">${i+1}º</td><td>Prêmio ${i+1}º lugar</td>
+      <td class="r">${E.posicoes[i]}%</td><td class="r money pos">${brl(v)}</td></tr>`).join('');
+
+  const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<title>${esc(E.nome||'Poker Royal')} — relatório</title>
+<style>
+  @page{margin:16mm}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font:13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#14181F;padding:0 4mm}
+  .cab{display:flex;align-items:center;gap:12px;border-bottom:3px solid #14181F;padding-bottom:12px;margin-bottom:6px}
+  .crown{display:flex;align-items:flex-end;gap:3px}
+  .crown i{width:7px;border-radius:2px}
+  h1{font-size:22px;letter-spacing:.04em}
+  .sub{color:#6A7683;font-size:12px;margin:4px 0 22px}
+  h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6A7683;
+     margin:22px 0 8px;border-bottom:1px solid #D8DEE5;padding-bottom:5px}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+     color:#8A97A6;padding:6px 8px;border-bottom:1px solid #D8DEE5}
+  td{padding:8px;border-bottom:1px solid #EDF0F3;vertical-align:top}
+  .c{text-align:center;color:#8A97A6;width:32px}
+  .r{text-align:right}
+  .money{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+  .neg{color:#C0392B} .pos{color:#0B8A4D}
+  .muted{color:#8A97A6;text-align:center;padding:14px}
+  .tag{display:inline-block;color:#fff;font-size:10px;padding:2px 7px;border-radius:20px;
+       white-space:nowrap;margin:1px 0}
+  .totais{margin-top:8px;margin-left:auto;width:60%}
+  .totais td{border:0;padding:5px 8px}
+  .totais .lin td{border-top:1px solid #D8DEE5}
+  .totais .big td{border-top:2px solid #14181F;font-size:16px;font-weight:700}
+  .totais .lbl{color:#6A7683}
+  .rodape{margin-top:34px;padding-top:12px;border-top:1px solid #D8DEE5;
+          font-size:10px;color:#8A97A6;line-height:1.6}
+</style></head><body>
+  <div class="cab">
+    <span class="crown">
+      <i style="background:#00C46A;height:14px"></i><i style="background:#2E7BFF;height:20px"></i>
+      <i style="background:#FF8A00;height:26px"></i><i style="background:#B8BEC7;height:20px"></i>
+    </span>
+    <h1>${esc(E.nome||'POKER ROYAL')}</h1>
+  </div>
+  <div class="sub">Relatório da noite · ${data}</div>
+
+  <h2>Entradas por jogador</h2>
+  <table>
+    <thead><tr><th class="c">#</th><th>Jogador</th><th>Compras</th><th class="r">Investido</th></tr></thead>
+    <tbody>${linhasJog}</tbody>
+  </table>
+
+  <h2>Despesas</h2>
+  <table><tbody>${linhasDesp}</tbody></table>
+
+  <h2>Premiação</h2>
+  <table>
+    <thead><tr><th class="c">Pos</th><th>Descrição</th><th class="r">%</th><th class="r">Valor</th></tr></thead>
+    <tbody>${linhasPremio||'<tr><td colspan="4" class="muted">Defina os percentuais para calcular</td></tr>'}</tbody>
+  </table>
+
+  <table class="totais">
+    <tr><td class="lbl">Jogadores inscritos</td><td class="r">${c.ins.length}</td></tr>
+    <tr><td class="lbl">Total de entradas</td><td class="r">${c.ent}</td></tr>
+    <tr><td class="lbl">Fichas em jogo</td><td class="r">${nf(c.fic)}</td></tr>
+    <tr class="lin"><td class="lbl">Arrecadação bruta</td><td class="r money">${brl(c.arrec)}</td></tr>
+    <tr><td class="lbl">Despesas</td><td class="r money neg">− ${brl(c.desp)}</td></tr>
+    <tr class="big"><td>Premiação líquida</td><td class="r money pos">${brl(Math.max(0,c.liq))}</td></tr>
+  </table>
+
+  <div class="rodape">
+    Gerado pelo Poker Royal. Este documento registra e organiza valores de um home game;
+    não constitui movimentação financeira. Confira a conferência: a soma dos prêmios
+    (${brl(c.pz.reduce((a,b)=>a+b,0))}) deve igualar a premiação líquida.
+  </div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},350);}<\/script>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if (!w){ toast('Permita abrir a janela para gerar o PDF'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+  toast('Na tela de impressão, escolha "Salvar em PDF"');
+}
+
+/* ══════════ backup em arquivo ══════════ */
+function baixarBackup(){
+  const d = new Date();
+  const carimbo = d.toISOString().slice(0,16).replace('T','-').replace(':','h');
+  const pacote = {app:'poker-royal', versao:1, salvoEm:d.toISOString(), mesa:E};
+  const url = URL.createObjectURL(new Blob([JSON.stringify(pacote,null,2)],{type:'application/json'}));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'poker-royal-'+carimbo+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  toast('Backup salvo no aparelho');
+}
+
+function restaurar(input){
+  const f = input.files && input.files[0];
+  input.value = '';
+  if (!f) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try{
+      const p = JSON.parse(fr.result);
+      const mesa = p && p.mesa && p.mesa.jogadores ? p.mesa : (p && p.jogadores ? p : null);
+      if (!mesa) throw 0;
+      const antes = JSON.parse(JSON.stringify(E));
+      E = Object.assign({}, E, mesa);
+      document.getElementById('tNome').value = E.nome || '';
+      render(); salvar(true);
+      toast('Mesa restaurada do backup', ()=>{ E = antes;
+        document.getElementById('tNome').value = E.nome || ''; render(); salvar(true); });
+    }catch(e){ toast('Arquivo inválido — use um backup do Poker Royal'); }
+  };
+  fr.onerror = () => toast('Não consegui ler o arquivo');
+  fr.readAsText(f);
+}
+
+/* ══════════ service worker: abre sem internet ══════════ */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', ()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+
+/* ══════════ início ══════════ */
+(async function(){
+  const salvo = await Store.ler();
+  if (salvo && salvo.jogadores){
+    E = Object.assign(E, salvo);
+    document.getElementById('tNome').value = E.nome || '';
+    render();
+    toast('Mesa recuperada de onde você parou');
+  } else {
+    for (let i=0;i<10;i++) addJog();
+    render();
+  }
+})();
+</script>
+</body>
+</html>
