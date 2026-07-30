@@ -1,7 +1,10 @@
 /* Poker Royal — service worker
    Estrategia: cache-first para os arquivos do app.
    A mesa precisa funcionar sem sinal: chacara, garagem, predio com wi-fi ruim. */
-const CACHE = 'poker-royal-v3';
+/* v4: marca oficial (ficha + coroa ouro), mesa comecando vazia e layout dos
+   controles do jogador. TROCAR ESTA VERSAO A CADA MUDANCA — a estrategia e
+   cache-first, entao sem bump quem ja abriu continua vendo o arquivo antigo. */
+const CACHE = 'poker-royal-v4';
 const ARQUIVOS = [
   './',
   './index.html',

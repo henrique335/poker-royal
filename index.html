@@ -19,6 +19,9 @@
   --bg:#08090D; --panel:#11141B; --raised:#181D26; --edge:#232B37; --edge2:#2E3846;
   --green:#00C46A; --red:#FF3B47; --orange:#FF8A00; --blue:#2E7BFF; --chip:#FFFFFF;
   --txt:#F2F5F8; --dim:#8A97A6;
+  /* marca oficial (marca-poker-royal/COMO-USAR.md): o ouro da coroa e a
+     constante da marca, e o verde muda no fundo escuro para nao sumir */
+  --gold:#C9A227; --marca-verde:#0E7A52;
   --ui:"Chakra Petch",system-ui,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
 }
@@ -100,28 +103,40 @@ button:active{opacity:.55}
 .jg.out{opacity:.4}
 .jg .cabec{display:flex;align-items:center;gap:10px;margin-bottom:11px}
 .jg .num{font-family:var(--mono);font-size:11px;color:var(--dim);width:16px}
-.jg .cabec input{flex:1;background:transparent;border:0;border-bottom:1px solid var(--edge);
+.jg .cabec input{flex:1;min-width:0;background:transparent;border:0;border-bottom:1px solid var(--edge);
   color:var(--txt);font-family:var(--ui);font-size:17px;font-weight:500;letter-spacing:.04em;
   padding:5px 0;outline:none}
 .jg .cabec input:focus{border-color:var(--blue)}
-.jg .tot{font-family:var(--mono);font-size:15px;font-weight:500;
+/* o total nao encolhe: quem cede espaco e o campo do nome */
+.jg .tot{flex:0 0 auto;font-family:var(--mono);font-size:15px;font-weight:500;
   font-variant-numeric:tabular-nums;white-space:nowrap}
 .pilha{display:flex;gap:3px;flex-wrap:wrap;min-height:14px;margin-bottom:12px}
 .pilha i{width:8px;height:14px;border-radius:2px}
-.acs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.ac{display:flex;align-items:center;gap:5px;background:var(--bg);
-  border:1px solid var(--edge);border-radius:8px;padding:5px;border-left-width:3px}
-.ac .n{flex:1;min-width:0;font-size:10px;font-weight:600;letter-spacing:.09em;
-  text-transform:uppercase;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ac .q{font-family:var(--mono);font-size:16px;font-weight:700;min-width:15px;text-align:center}
-.ac button{width:36px;min-height:36px;padding:0;font-size:19px;font-weight:400;
-  border-radius:6px;line-height:1}
-.ac.fixo{padding-left:9px}
-.ac.fixo .lock{width:20px;text-align:center;color:var(--green);font-size:13px;font-weight:700}
-.ac.fixo .q{color:var(--green)}
-.jg .pe{display:flex;justify-content:space-between;align-items:center;margin-top:11px}
+/* auto-fit: usa 2 colunas quando cabem 148px cada, senão cai para 1 sozinho.
+   Sem breakpoint chutado — o proprio grid decide pela largura real disponivel. */
+.acs{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px}
+/* rotulo em cima, controles embaixo: o nome do tipo ganha a largura inteira da
+   coluna, senao "Rebuy duplo" era cortado em tela estreita */
+.ac{background:var(--bg);border:1px solid var(--edge);border-radius:8px;
+  padding:7px 8px;border-left-width:3px}
+.ac .n{display:block;font-size:9.5px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac .ctl{display:flex;align-items:center;gap:6px;min-height:38px}
+.ac .q{font-family:var(--mono);font-size:17px;font-weight:700;
+  font-variant-numeric:tabular-nums;flex:1;text-align:center}
+.ac button{flex:0 0 40px;width:40px;min-height:38px;padding:0;font-size:20px;
+  font-weight:400;border-radius:6px;line-height:1}
+.ac.fixo .ctl{gap:9px;padding-left:2px}
+.ac.fixo .lock{color:var(--green);font-size:13px;font-weight:700}
+.ac.fixo .q{color:var(--green);flex:0 0 auto;text-align:left}
+.jg .pe{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap}
 .jg .fx{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
 .jg .pe button{min-height:34px;padding:7px 12px;font-size:10px}
+/* mesa sem ninguem: explica o proximo passo em vez de deixar um vazio mudo */
+.vazio{border:1px dashed var(--edge2);border-radius:10px;padding:20px 16px;text-align:center;
+  font-size:12.5px;line-height:1.7;color:var(--dim);margin-bottom:11px}
+.vazio b{color:var(--txt);font-weight:600}
 
 /* ══ despesas ══ */
 .cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
@@ -166,20 +181,47 @@ button:active{opacity:.55}
 .tst.err{border-left-color:var(--red)}
 .tst button{border:0;background:none;color:var(--orange);padding:0;min-height:auto;
   font-size:11px;letter-spacing:.12em}
+
+/* ══ telas estreitas (iPhone SE, Android de 320-360px) ══
+   Em 320px o trio de indicadores estourava: 3 colunas de ~86px com valor
+   "R$ 1.234,56" em mono de 14px pede ~92px e o nowrap nao deixa quebrar. */
+@media (max-width:360px){
+  .top,.titulo,.painel{padding-left:13px;padding-right:13px}
+  .corpo{padding-left:13px;padding-right:13px}
+  .premio{font-size:29px}
+  .trio{gap:8px}
+  .trio .v{font-size:12.5px}
+  .mesa{font-size:10px}
+  .jg{padding:11px}
+  .marca b{font-size:21px;letter-spacing:.14em}
+}
 </style>
 </head>
 <body>
 <div class="app">
 
   <div class="top">
-    <svg width="34" height="30" viewBox="0 0 34 30" aria-label="Poker Royal">
-      <path d="M0 8 L6 26 L11 26 L8 8 Z" fill="#00C46A"/>
-      <path d="M9 4 L14 26 L18 26 L14 4 Z" fill="#2E7BFF"/>
-      <path d="M20 4 L16 26 L20 26 L25 4 Z" fill="#FF8A00"/>
-      <path d="M34 8 L28 26 L23 26 L26 8 Z" fill="#FFFFFF"/>
-      <rect x="4" y="27" width="26" height="3" rx="1.5" fill="#5A6675"/>
+    <!-- Marca oficial: ficha verde + coroa ouro. Vetor embutido em vez de <img>
+         para ficar nitido em qualquer tela e nao depender de outro arquivo.
+         Os entalhes e o miolo sao pintados com a cor do fundo (#08090D) para
+         parecerem recortados. Acima de 32px pode usar a versao completa. -->
+    <svg width="38" height="38" viewBox="-44 -44 88 88" role="img" aria-label="Poker Royal">
+      <circle r="40" fill="#0E7A52"/>
+      <g fill="#08090D">
+        <rect x="-5.5" y="-42" width="11" height="9" rx="2"/><rect x="-5.5" y="33" width="11" height="9" rx="2"/>
+        <rect x="-42" y="-4.5" width="9" height="11" rx="2"/><rect x="33" y="-4.5" width="9" height="11" rx="2"/>
+        <g transform="rotate(45)">
+          <rect x="-5.5" y="-42" width="11" height="9" rx="2"/><rect x="-5.5" y="33" width="11" height="9" rx="2"/>
+          <rect x="-42" y="-4.5" width="9" height="11" rx="2"/><rect x="33" y="-4.5" width="9" height="11" rx="2"/>
+        </g>
+      </g>
+      <circle r="27" fill="#08090D"/>
+      <circle r="24" fill="none" stroke="#0E7A52" stroke-width="1.4" stroke-dasharray="3 3" opacity=".55"/>
+      <path d="M-14 -2 L-11 11 L11 11 L14 -2 L7.5 3.5 L0 -9 L-7.5 3.5 Z" fill="#C9A227"/>
+      <circle cx="-14" cy="-5" r="2" fill="#C9A227"/><circle cx="0" cy="-12.5" r="2" fill="#C9A227"/><circle cx="14" cy="-5" r="2" fill="#C9A227"/>
+      <rect x="-11" y="13.5" width="22" height="3" rx="1.5" fill="#C9A227"/>
     </svg>
-    <div class="marca"><b>POKER</b><b style="color:var(--orange)">ROYAL</b><span>CONTROLE DE MESA</span></div>
+    <div class="marca"><b>POKER</b><b style="color:var(--gold)">ROYAL</b><span>CONTROLE DE MESA</span></div>
     <div class="salvo"><b id="sv">salvo</b><span id="svq">—</span></div>
   </div>
 
@@ -202,7 +244,8 @@ button:active{opacity:.55}
     </div>
   </div>
 
-  <section id="sC">
+  <!-- aberta por padrao: a mesa comeca vazia, e configurar as compras e o 1o passo -->
+  <section id="sC" class="on">
     <div class="cab" onclick="tg('sC')"><h2>Tabela de compras</h2><span class="tag" id="tagC"></span><span class="seta">▾</span></div>
     <div class="corpo" id="listaT"></div>
   </section>
@@ -391,19 +434,22 @@ function render(){
       </div>
     </div>`).join('');
 
-  document.getElementById('listaJ').innerHTML = E.jogadores.map((j,i)=>{
+  const linhasJ = E.jogadores.map((j,i)=>{
     const pilha = E.tipos.flatMap(t=>Array(j.q[t.id]).fill(`<i style="background:${CORES[t.id]}"></i>`)).join('');
     const acs = E.tipos.map(t=>{
       if (t.id==='bi') return `
       <div class="ac fixo" style="border-left-color:${CORES[t.id]}">
-        <span class="lock">✓</span>
-        <span class="n">${t.nome}</span><span class="q">1</span>
+        <span class="n">${t.nome}</span>
+        <div class="ctl"><span class="lock">✓</span><span class="q">1</span></div>
       </div>`;
       return `
       <div class="ac" style="border-left-color:${CORES[t.id]}">
-        <button onclick="mud(${i},'${t.id}',-1)">−</button>
-        <span class="n">${t.nome}</span><span class="q">${j.q[t.id]}</span>
-        <button onclick="mud(${i},'${t.id}',1)" style="background:${CORES[t.id]};border-color:${CORES[t.id]};color:#08090D">+</button>
+        <span class="n">${t.nome}</span>
+        <div class="ctl">
+          <button onclick="mud(${i},'${t.id}',-1)">−</button>
+          <span class="q">${j.q[t.id]}</span>
+          <button onclick="mud(${i},'${t.id}',1)" style="background:${CORES[t.id]};border-color:${CORES[t.id]};color:#08090D">+</button>
+        </div>
       </div>`;
     }).join('');
     return `<div class="jg ${j.out?'out':''}">
@@ -423,6 +469,9 @@ function render(){
       </div>
     </div>`;
   }).join('');
+  document.getElementById('listaJ').innerHTML = linhasJ || `<div class="vazio">
+    Nenhum jogador na mesa ainda.<br>
+    Confira a <b>tabela de compras</b> acima e toque em <b>adicionar jogador</b>.</div>`;
   document.getElementById('btnAdd').style.display = E.jogadores.length>=10 ? 'none':'block';
 
   document.getElementById('cats').innerHTML = CATS.map(x=>
@@ -500,9 +549,9 @@ function zerar(){
   if (!confirm('Isso apaga a mesa atual e começa uma nova. Continuar?')) return;
   E.jogadores=[]; E.despesas=[]; E.nome='';
   document.getElementById('tNome').value='';
-  for(let i=0;i<10;i++) addJog();
+  render();                 // a mesa nova comeca VAZIA: quem joga, o anfitriao decide
   salvar(true);
-  toast('Nova mesa aberta');
+  toast('Nova mesa aberta — configure as compras e adicione os jogadores');
 }
 
 function copiar(){
@@ -555,8 +604,7 @@ function gerarPDF(){
   *{box-sizing:border-box;margin:0;padding:0}
   body{font:13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#14181F;padding:0 4mm}
   .cab{display:flex;align-items:center;gap:12px;border-bottom:3px solid #14181F;padding-bottom:12px;margin-bottom:6px}
-  .crown{display:flex;align-items:flex-end;gap:3px}
-  .crown i{width:7px;border-radius:2px}
+  .marca{flex:0 0 auto}
   h1{font-size:22px;letter-spacing:.04em}
   .sub{color:#6A7683;font-size:12px;margin:4px 0 22px}
   h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6A7683;
@@ -581,10 +629,21 @@ function gerarPDF(){
           font-size:10px;color:#8A97A6;line-height:1.6}
 </style></head><body>
   <div class="cab">
-    <span class="crown">
-      <i style="background:#00C46A;height:14px"></i><i style="background:#2E7BFF;height:20px"></i>
-      <i style="background:#FF8A00;height:26px"></i><i style="background:#B8BEC7;height:20px"></i>
-    </span>
+    <svg class="marca" width="36" height="36" viewBox="-44 -44 88 88" role="img" aria-label="Poker Royal">
+      <circle r="40" fill="#0B5C3E"/>
+      <g fill="#fff">
+        <rect x="-5.5" y="-42" width="11" height="9" rx="2"/><rect x="-5.5" y="33" width="11" height="9" rx="2"/>
+        <rect x="-42" y="-4.5" width="9" height="11" rx="2"/><rect x="33" y="-4.5" width="9" height="11" rx="2"/>
+        <g transform="rotate(45)">
+          <rect x="-5.5" y="-42" width="11" height="9" rx="2"/><rect x="-5.5" y="33" width="11" height="9" rx="2"/>
+          <rect x="-42" y="-4.5" width="9" height="11" rx="2"/><rect x="33" y="-4.5" width="9" height="11" rx="2"/>
+        </g>
+      </g>
+      <circle r="27" fill="#fff"/>
+      <path d="M-14 -2 L-11 11 L11 11 L14 -2 L7.5 3.5 L0 -9 L-7.5 3.5 Z" fill="#C9A227"/>
+      <circle cx="-14" cy="-5" r="2" fill="#C9A227"/><circle cx="0" cy="-12.5" r="2" fill="#C9A227"/><circle cx="14" cy="-5" r="2" fill="#C9A227"/>
+      <rect x="-11" y="13.5" width="22" height="3" rx="1.5" fill="#0B5C3E"/>
+    </svg>
     <h1>${esc(E.nome||'POKER ROYAL')}</h1>
   </div>
   <div class="sub">Relatório da noite · ${data}</div>
@@ -675,10 +734,13 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
     E = Object.assign(E, salvo);
     document.getElementById('tNome').value = E.nome || '';
     render();
-    toast('Mesa recuperada de onde você parou');
+    // So avisa se havia mesa de verdade. Como a mesa agora comeca vazia, o
+    // proprio render grava um estado em branco — dizer "recuperada" a cada
+    // abertura limpa seria mentira e confunde.
+    if (E.jogadores.length || E.despesas.length || E.nome)
+      toast('Mesa recuperada de onde você parou');
   } else {
-    for (let i=0;i<10;i++) addJog();
-    render();
+    render();               // mesa vazia: o anfitriao configura e adiciona quem veio
   }
 })();
 </script>
